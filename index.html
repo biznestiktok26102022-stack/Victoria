@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8f4">
+  <title>Вікторіє, це побачення? ☕</title>
+  <style>
+    :root{--ink:#352b2a;--muted:#766764;--rose:#c96f78;--rose-dark:#a94f5b;--paper:#fffaf7;--line:#f0dcd6}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 10% 5%,#ffe9e5 0,transparent 32%),linear-gradient(135deg,#fffaf7,#fff1eb);color:var(--ink);font-family:ui-rounded,"Segoe UI",system-ui,sans-serif;min-height:100vh}
+    main{width:min(720px,calc(100% - 28px));margin:38px auto;padding:clamp(22px,5vw,48px);background:#ffffffdc;border:1px solid #fff;border-radius:28px;box-shadow:0 18px 60px #8d4e4017}
+    .eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--rose-dark);font-weight:800}
+    h1{font-family:Georgia,serif;font-weight:500;line-height:1.08;font-size:clamp(38px,8vw,64px);margin:12px 0}
+    .lead{font-size:17px;line-height:1.65;color:var(--muted);max-width:570px}
+    .heart{color:var(--rose)} .coffee{font-size:54px;margin:12px 0}
+    form{margin-top:28px;display:grid;gap:18px} fieldset{border:0;padding:0;margin:0;display:grid;gap:9px}
+    legend,label{font-weight:750;font-size:14px;margin-bottom:2px}
+    input,select,textarea{width:100%;padding:14px 15px;border:1px solid var(--line);border-radius:13px;background:#fffdfc;color:var(--ink);font:inherit;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px #c96f781c}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .choices{display:flex;flex-wrap:wrap;gap:8px}.choice{display:flex;align-items:center;gap:7px;border:1px solid var(--line);padding:10px 12px;border-radius:999px;background:#fffdfc;font-size:14px}.choice input{width:auto;accent-color:var(--rose)}
+    textarea{min-height:94px;resize:vertical}
+    button{border:0;border-radius:999px;padding:16px 22px;background:var(--rose);color:white;font:inherit;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 8px 20px #c96f7838}
+    button:hover{background:var(--rose-dark)}button:disabled{opacity:.65;cursor:wait}
+    .small{font-size:12px;color:#8a7772;line-height:1.5}.status{min-height:24px;font-weight:700;color:var(--rose-dark)}
+    footer{margin-top:24px;text-align:center;color:#9b8580;font-size:12px}
+    @media(max-width:520px){main{margin:14px auto}.two{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Маленьке важливе запрошення</div>
+  <div class="coffee">☕🌷</div>
+  <h1>Вікторіє,<br>влаштуємо собі <span class="heart">побачення</span>?</h1>
+  <p class="lead">Пропоную прогулянку, затишну кав’ярню й лате — а решту вирішимо разом. Обери, як тобі буде найприємніше. Обіцяю гарну компанію та щонайменше одну невдалу жартівливу фразу 😊</p>
+  <form id="inviteForm">
+    <div class="two">
+      <fieldset><label for="day">Який день тобі підходить?</label><input id="day" name="day" type="date" required></fieldset>
+      <fieldset><label for="time">О котрій?</label><input id="time" name="time" type="time" required></fieldset>
+    </div>
+    <fieldset><label for="place">Де зустрінемось?</label><input id="place" name="place" placeholder="Наприклад, центр / конкретне місце" required></fieldset>
+    <fieldset><legend>Який формат обираєш?</legend><div class="choices">
+      <label class="choice"><input type="radio" name="format" value="Прогулянка + кава" checked> Прогулянка + кава</label>
+      <label class="choice"><input type="radio" name="format" value="Спочатку кава"> Спочатку кава</label>
+      <label class="choice"><input type="radio" name="format" value="Невелика пригода"> Невелика пригода</label>
+      <label class="choice"><input type="radio" name="format" value="Твій варіант"> Твій варіант</label>
+    </div></fieldset>
+    <fieldset><label for="coffee">Що питимемо?</label><select id="coffee" name="coffee"><option>Лате ☕</option><option>Капучино</option><option>Флет-вайт</option><option>Чай</option><option>Щось інше — оберемо на місці</option></select></fieldset>
+    <fieldset><label for="wishes">Є побажання або секретний план?</label><textarea id="wishes" name="wishes" placeholder="Можеш написати все, що хочеш 🙂"></textarea></fieldset>
+    <button id="sendBtn" type="submit">Надіслати мою відповідь 💌</button>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <p class="small">Твої відповіді будуть надіслані організатору зустрічі в Telegram. Не додавай сюди приватну чи чутливу інформацію.</p>
+  </form>
+  <footer>Зроблено з теплом і невеликою надією на лате разом ♥</footer>
+</main>
+<script>
+const form=document.getElementById('inviteForm'),statusBox=document.getElementById('status'),button=document.getElementById('sendBtn');
+form.addEventListener('submit',async e=>{
+ e.preventDefault();button.disabled=true;statusBox.textContent='Надсилаю…';
+ const data=Object.fromEntries(new FormData(form).entries());
+ try{
+  const r=await fetch('/.netlify/functions/send-invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const result=await r.json();
+  if(!r.ok)throw new Error(result.error||'Не вдалося надіслати');
+  statusBox.textContent='Ура! Відповідь надіслано. До зустрічі! 💗';form.reset();
+ }catch(err){statusBox.textContent='Поки не вдалося надіслати. Спробуй ще раз трохи пізніше.';console.error(err);}
+ finally{button.disabled=false;}
+});
+</script>
+</body></html>
